@@ -22,3 +22,18 @@ after_success:
   - docker push yuriiknowsjava/multi-nginx
   - docker push yuriiknowsjava/multi-server
   - docker push yuriiknowsjava/multi-worker
+
+deploy:
+  edge: true
+  provider: elasticbeanstalk
+  region: us-east-2
+  app: multi-docker
+  env: Multidocker-env # elasticbeanstalk env name
+  bucket_name: elasticbeanstalk-us-east-2-695228135251 # AWS s3 name
+  bucket_path: multi-docker # folder in s3 
+  on:
+    branch: main
+
+  # Env variables
+  access_key_id: '$AWS_ACCESS_KEY'
+  secret_access_key: '$AWS_SECRET_KEY'
