@@ -1,0 +1,69 @@
+version: '3'
+
+services: 
+    nginx:
+        build: 
+            context: ./nginx
+            dockerfile: Dockerfile.dev
+        restart: 'no'
+        ports: 
+            - 3050:80
+        depends_on:
+            - api
+            - client
+
+    postgres:
+        image: postgres:10
+        restart: 'no'
+        environment: 
+            POSTGRES_PASSWORD: ${PGPASSWORD}
+            POSTGRES_USER: ${PGUSER}
+            POSTGRES_DB: ${PGDATABASE}
+    
+    redis:
+        image: redis:6
+        restart: 'no'
+    
+    # We cannot name it server, because it is a key word in nginx config
+    api:
+        build:
+            context: ./server
+            dockerfile: Dockerfile.dev
+        restart: 'no'
+        volumes: 
+            - /app/node_modules
+            - ./server:/app
+        environment: 
+            REDIS_HOST: ${REDIS_HOST}
+            REDIS_PORT: ${REDIS_PORT}
+            PGUSER: ${PGUSER}
+            PGHOST: ${PGHOST}
+            PGPORT: ${PGPORT}
+            PGDATABASE: ${PGDATABASE}
+            PGPASSWORD: ${PGPASSWORD}
+        depends_on: 
+            - redis
+            - postgres
+    
+    worker:
+        build: 
+            context: ./worker
+            dockerfile: Dockerfile.dev
+        restart: 'no'
+        volumes: 
+            - /app/node_modules
+            - ./worker:/app
+        environment: 
+            REDIS_HOST: ${REDIS_HOST}
+            REDIS_PORT: ${REDIS_PORT}
+        depends_on: 
+            - redis
+    
+    client:
+        build:
+            context: ./client
+            dockerfile: Dockerfile.dev
+        restart: 'no'
+        volumes: 
+            - /app/node_modules
+            - ./client:/app
